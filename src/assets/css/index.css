@@ -1,0 +1,44 @@
+@import "~react-image-gallery/styles/css/image-gallery.css";
+
+/* Add gratitude button and text screen   */
+.cards-space-affirmation {
+  width: 18 rem;
+  margin-top: 20 px !important;
+  cursor: pointer;
+}
+.cursor {
+  cursor: pointer;
+}
+.pods-cards-shadow {
+  box-shadow: 0 0 2px 0 rgb(0 3 82 / 24%), 0 16px 32px -4px rgb(0 3 82 / 24%);
+  border-radius: 16px;
+}
+.h2-heading {
+  color: #9f00ff;
+}
+.pods-active-members {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 5px;
+  margin-bottom: -20px !important;
+  color: #858585;
+}
+.pods-image {
+  border-top-right-radius: 16px;
+  border-top-left-radius: 16px;
+}
+.memory-heading {
+  padding-top: -1px !important;
+}
+
+.padding-screen {
+  padding-left: 12px;
+  padding-right: 24px;
+}
+@media only screen and (max-width: 769px) {
+  .cards-space-affirmation {
+    width: 18 rem;
+    margin-top: 20 px;
+    margin-left: 65 px;
+  }
+}
