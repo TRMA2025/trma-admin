@@ -165,6 +165,7 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import FileViewer from "react-file-viewer";
+import { fetchAuthenticatedPdf } from "src/utils/downloadResource";
 
 import { Icon } from "@iconify/react";
 import { styled } from "@mui/material/styles";
@@ -201,11 +202,14 @@ export default function DocumentModelBox({
   image_url,
   type,
   previewDoc,
+  pdf_path,
 }) {
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [iframeSrc, setIframeSrc] = React.useState(null);
   const [error, setError] = React.useState(false);
   const [retry, setReTry] = React.useState(0);
+  /* Object URL for a private PDF fetched through the authenticated route. */
+  const [pdfUrl, setPdfUrl] = React.useState(null);
   const maxRetries = 5;
   const retryDelay = 2000;
   const docs = [{ uri: image_url }];
@@ -249,11 +253,36 @@ export default function DocumentModelBox({
   };
 
   React.useEffect(() => {
-    if (type === "other_document" && image_url) {
-      resetStates();
-      fetchDocument(image_url);
+    if (type !== "other_document" || !image_url) return undefined;
+    resetStates();
+
+    /* PDFs are stored private (13 Sep 2026); the storage URL answers 403 and
+       left this preview spinning forever. Load them through the
+       authenticated route instead (16 Sep 2026). */
+    if (extension === "pdf" && pdf_path) {
+      let objectUrl = null;
+      let cancelled = false;
+      fetchAuthenticatedPdf(pdf_path)
+        .then((blob) => {
+          if (cancelled) return;
+          objectUrl = URL.createObjectURL(blob);
+          setPdfUrl(objectUrl);
+          setIsLoaded(true);
+          setError(false);
+        })
+        .catch(() => {
+          if (!cancelled) setError(true);
+        });
+      return () => {
+        cancelled = true;
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        setPdfUrl(null);
+      };
     }
-  }, [type, image_url]);
+
+    fetchDocument(image_url);
+    return undefined;
+  }, [type, image_url, pdf_path]);
 
   const isValidUrl = (url) => {
     try {
@@ -291,7 +320,7 @@ export default function DocumentModelBox({
                 extension === "csv" || extension === "pdf" ? (
                   <FileViewer
                     fileType={extension}
-                    filePath={image_url}
+                    filePath={(extension === "pdf" && pdfUrl) || image_url}
                     errorComponent={<div>Error loading file</div>}
                     onError={(e) => console.error("FileViewer error:", e)}
                   />
@@ -309,6 +338,10 @@ export default function DocumentModelBox({
                     }}
                   />
                 )
+              ) : error ? (
+                <div className="loading-preview" style={{ color: "#333" }}>
+                  This file could not be previewed. Use Download instead.
+                </div>
               ) : (
                 <div className="loading-preview">
                   <CircularProgress className="loading-preview-svg" />

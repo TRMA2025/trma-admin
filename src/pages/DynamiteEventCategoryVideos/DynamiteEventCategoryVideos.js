@@ -39,10 +39,10 @@ import {
 const TABLE_HEAD = [
   { id: "number", label: "#", alignRight: false },
   { id: "name", label: "Title", alignRight: false },
-  { id: "event_title", label: "Dynamite Events Title", alignRight: false },
+  { id: "event_title", label: "Event Title", alignRight: false },
   {
     id: "category_title",
-    label: "Dynamite Events Category Title",
+    label: "Event Category Title",
     alignRight: false,
   },
   { id: "order", label: "Order", alignRight: false },

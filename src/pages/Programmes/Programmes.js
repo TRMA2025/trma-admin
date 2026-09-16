@@ -75,7 +75,7 @@ export default function Programmes() {
       "&.Mui-focused fieldset": {
         borderColor: "green",
       },
-      "& .MuiInputLabel-root": { color: "white" },
+      "& .MuiInputLabel-root": { color: "#637381" },
 
       "& .mUI& .MuiOutlinedInput-root": {
         color: "white",
@@ -197,7 +197,7 @@ export default function Programmes() {
             sx={{
               marginRight: 2,
               width: 240,
-              "& .MuiInputLabel-root": { color: "white" }, // For label color
+              "& .MuiInputLabel-root": { color: "#637381" }, // For label color
             }}
             value={filterName}
             onChange={(e) => setFilterName(e.target.value)}

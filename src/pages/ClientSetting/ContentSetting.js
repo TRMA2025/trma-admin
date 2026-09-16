@@ -775,7 +775,7 @@ export default function UpdateContentSetting() {
           />
         </div> */}
                 {/* <div className="col-12 mt-5">
-          <h4 className="mb-3">Forget Page Description</h4>
+          <h4 className="mb-3">Forgot Password Page Description</h4>
           <TinyEditor
             setDetailDescription={setForgetPageDescription}
             detailDescriptionCk={forgetPageDescription}

@@ -165,6 +165,8 @@ import AddCompaignSetting from "./pages/SiteSetting/CompaingSetting";
 import AddStripeSetting from "./pages/SiteSetting/StripeSetting";
 import EmailSetting from "./pages/SiteSetting/EmailSetting";
 import DefaultSetting from "./pages/SiteSetting/DefaultSetting";
+import AdminUsers from "./pages/AdminUsers/AdminUsers";
+import CoinResets from "./pages/Coins/CoinResets";
 import EmailTemplates from "./pages/SiteSetting/EmailTemplates";
 import EditEmailTemplate from "./pages/SiteSetting/EditEmailTemplate";
 import { EmailTemplatePreview } from "./pages/SiteSetting/EmailTemplatePreview";
@@ -358,7 +360,7 @@ import BooksModule from "./pages/booksModule/Books";
 import TagsList from "./pages/booksModule/manageTags/TagsList";
 import AddBook from "./pages/books/AddBook";
 import BookDetail from "./pages/books/BookDetail";
-import EditBook from "./pages/book/EditBook";
+
 import LessonSectionListing from "./pages/section/LessonSectionList";
 import AddLessonSection from "./pages/Sections/AdLessonSection";
 import EditLessonSection from "./pages/Sections/EditLessonSection";
@@ -598,7 +600,7 @@ export default function Router() {
           element={<EditProgrammeSection />}
         />
         {/* program section end */}
-        {/* dynamite events new  */}
+        {/* events */}
         <Route path="/dynamite-events" element={<DynamiteEventsList />} />
         <Route
           path="/dynamite-events/add-event"
@@ -1556,7 +1558,6 @@ export default function Router() {
           path="/dynamite-events/:event_id/general-events/:id"
           element={<EditWebPageEvent />}
         />
-        {/* <Route path="/dynamite-events" element={<DynamiteEventsList />} /> */}
         {/* <Route
           path="/dynamite-events/:dynamite_event_id/general-events"
           element={<WebPageEvents />}
@@ -1610,6 +1611,9 @@ export default function Router() {
         <Route path="/stripe-setting" element={<AddStripeSetting />} />
         <Route path="/email-setting" element={<EmailSetting />} />
         <Route path="/default-setting" element={<DefaultSetting />} />
+        <Route path="/admin-users" element={<AdminUsers />} />
+        {/* Coin reset audit log; 404s from the API unless COINS_YEARS=true. */}
+        <Route path="/coin-resets" element={<CoinResets />} />
         <Route path="/email-templates" element={<EmailTemplates />} />
         <Route path="/campaign-setting" element={<AddCompaignSetting />} />
         <Route
@@ -1697,7 +1701,7 @@ export default function Router() {
         <Route path="/books/add-book" element={<AddBook />} />
         <Route path="/books/manage-tags" element={<TagsList />} />
         <Route path="/books/book-detail/:id" element={<BookDetail />} />
-        <Route path="/books/:slug/edit-book" element={<EditBook />} />
+
         <Route path="/daily-affirmation" element={<DailyGratitude />} />
         <Route path="/daily-meditation" element={<DailyGratitude />} />
         <Route path="/meditation-videos" element={<MeditationVideos />} />

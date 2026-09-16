@@ -227,7 +227,7 @@ export default function AddorUpdateGratitude() {
                 onChange={handleChange}
               >
                 <MenuItem value="dynamite_gratitude">Gratitude Daily</MenuItem>
-                <MenuItem value="dynamite_diary">Dynamite Diary</MenuItem>
+                <MenuItem value="dynamite_diary">Diary</MenuItem>
                 <MenuItem value="meditation">Meditation</MenuItem>
               </Select>
             </FormControl>

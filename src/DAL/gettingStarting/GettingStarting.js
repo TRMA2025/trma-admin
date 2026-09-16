@@ -1,3 +1,5 @@
+import axios from "axios";
+import { baseUri } from "../../config/config";
 import { invokeApi } from "src/bl_libs/invokeApi";
 
 export const GettingStartingApi = async (slug) => {
@@ -151,6 +153,39 @@ export const EditGettingStartingResourceDoApi = async (data, slug) => {
 export const deleteResourceGettingStatedDoc = async (slug) => {
   const requestObj = {
     path: `/api/getting_started_document/${slug}`,
+    method: "DELETE",
+    headers: {
+      "x-sh-auth": localStorage.getItem("token"),
+    },
+  };
+  return invokeApi(requestObj);
+};
+
+// Session PDF (13 Sep 2026). Stored privately, so it cannot be linked directly:
+// fetch with the auth header and hand the blob to the browser.
+export const downloadGettingStartedPdf = async (slug, filename) => {
+  const response = await axios({
+    method: "GET",
+    url: `${baseUri}/api/getting_started/download_pdf/${slug}`,
+    headers: { "x-sh-auth": localStorage.getItem("token") },
+    responseType: "blob",
+  });
+  const url = window.URL.createObjectURL(
+    new Blob([response.data], { type: "application/pdf" })
+  );
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename || "getting-started.pdf";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+// Clears the DB reference only; the stored file is retained.
+export const removeGettingStartedPdfApi = async (slug) => {
+  const requestObj = {
+    path: `/api/getting_started/remove_pdf/${slug}`,
     method: "DELETE",
     headers: {
       "x-sh-auth": localStorage.getItem("token"),

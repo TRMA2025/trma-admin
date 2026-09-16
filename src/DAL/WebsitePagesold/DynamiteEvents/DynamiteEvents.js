@@ -123,9 +123,7 @@ export const dynamiteEventsMembersApi = async (
   };
   return invokeApi(requestObj);
 };
-// export const dynamiteEventsMembersApi = async (event_id) => {
 //   const requestObj = {
-//     path: `/api/member/get_live_dynamite_event_member/${event_id}`,
 //     method: "GET",
 //     headers: {
 //       "x-sh-auth": localStorage.getItem("token"),

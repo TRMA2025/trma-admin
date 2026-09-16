@@ -79,7 +79,7 @@ export default function TinyEditorWebsiteSetting({
   return (
     <>
       <Editor
-        apiKey="4v4neyykcuxc7p8mnxweq3807d8t1pwtumr11b9xbvt7eaee"
+        apiKey={process.env.REACT_APP_TINYMCE_KEY}
         onChange={log}
         value={
           templateFieldsData !== undefined

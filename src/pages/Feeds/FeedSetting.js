@@ -224,7 +224,7 @@ export default function FeedSetting() {
         </div>
       </div>
       <div className="row">
-        <h4 className="mt-3">Dynamite Level</h4>
+        <h4 className="mt-3">BeeMe Level</h4>
         <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
           <TextField
             id="outlined-basic"

@@ -1,4 +1,6 @@
+import axios from "axios";
 import { invokeApi } from "../../bl_libs/invokeApi";
+import { baseUri } from "../../config/config";
 
 export const programmeListing = async (data) => {
   const requestObj = {
@@ -197,6 +199,38 @@ export const EditProgrammeDocumentApi = async (data, slug) => {
   };
   return invokeApi(requestObj);
 };
+// Authenticated PDF download (13 Sep 2026). Resource PDFs are private in
+// storage, so they cannot be linked directly - the bytes are fetched with the
+// auth header and handed to the browser as a blob.
+export const downloadProgrammeDocumentPdf = async (slug, filename) => {
+  const response = await axios({
+    method: "GET",
+    url: `${baseUri}/api/program_document/download/${slug}`,
+    headers: { "x-sh-auth": localStorage.getItem("token") },
+    responseType: "blob",
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename || "resource.pdf";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+// Detaches the file from the record. The stored file itself is retained.
+export const removeProgrammeDocumentFileApi = async (slug) => {
+  const requestObj = {
+    path: `/api/program_document/remove_file/${slug}`,
+    method: "DELETE",
+    headers: {
+      "x-sh-auth": localStorage.getItem("token"),
+    },
+  };
+  return invokeApi(requestObj);
+};
+
 // deleteProgrammeDocumentApi
 export const deleteProgrammeDocumentApi = async (slug) => {
   const requestObj = {

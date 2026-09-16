@@ -28,11 +28,6 @@ export default function EmailForm({ onhandleEmailSubmit }) {
           autoComplete="username"
           type="email"
           label="Email address"
-          sx={{
-            input: {
-              color: "white",
-            },
-          }}
         />
       </Stack>
       <Stack

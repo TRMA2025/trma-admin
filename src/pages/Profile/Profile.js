@@ -7,7 +7,7 @@ function Profile(props) {
   return (
     <>
       {/* <img src={profileImg} className="mb-4" alt="fireSpot" /> */}
-      <h1 className="programmes-heading text-center mb-5">DYNAMITE PROFILE</h1>
+      <h1 className="programmes-heading text-center mb-5">PROFILE</h1>
 
       <Container>
         <Row>

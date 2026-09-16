@@ -154,6 +154,7 @@ export default function AddMember() {
     is_executive: "false",
     school_organisation: "",
     work_role: "",
+    portal_region: "",
   });
 
   const handleChangeIsPostalAddress = (event) => {
@@ -290,6 +291,7 @@ export default function AddMember() {
         formData.append("last_name", inputs.last_name);
         formData.append("school_organisation", inputs.school_organisation);
         formData.append("work_role", inputs.work_role);
+        formData.append("portal_region", inputs.portal_region || "");
 
         formData.append("program", JSON.stringify(selectedProgramIds));
 
@@ -513,6 +515,17 @@ export default function AddMember() {
                     <MenuItem value="Trust / MAT">Trust / MAT</MenuItem>
                     <MenuItem value="Parent">Parent</MenuItem>
                     <MenuItem value="Other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
+              <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
+                <FormControl fullWidth>
+                  <InputLabel id="portal-region-label">Portal Region *</InputLabel>
+                  <Select labelId="portal-region-label" id="portal-region-select" name="portal_region" value={inputs.portal_region || ""} label="Portal Region *" onChange={handleChange}>
+                    <MenuItem value="">Select region…</MenuItem>
+                    <MenuItem value="NI">Northern Ireland</MenuItem>
+                    <MenuItem value="ROI">Republic of Ireland</MenuItem>
+                    <MenuItem value="UK">England / Wales</MenuItem>
                   </Select>
                 </FormControl>
               </div>

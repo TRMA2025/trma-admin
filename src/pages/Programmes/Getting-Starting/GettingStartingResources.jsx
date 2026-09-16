@@ -53,6 +53,8 @@ import {
 } from "src/DAL/gettingStarting/GettingStarting";
 import RecordNotFound from "src/components/RecordNotFound";
 import Skeleton from "react-loading-skeleton";
+import { downloadResource } from "src/utils/downloadResource";
+
 const ITEM_HEIGHT = 48;
 
 const imageLink = {
@@ -157,22 +159,21 @@ export const GettingStartingResources = () => {
     } else {
       path = value.document_file_url;
     }
+    /* PDFs are private: go through the authenticated route, not storage
+       (16 Sep 2026). A failure now says so instead of a blank toast. */
     setIsLoading(true);
-    const file_path = `${s3baseUrl}${path}`;
-    fetch(file_path)
-      .then(async (res) => {
-        if (res.status === 200) {
-          let blob = await res.blob();
-          saveAs(blob, path);
-          setIsLoading(false);
-        } else {
-          enqueueSnackbar(res.statusText, { variant: "error" });
-          setIsLoading(false);
-        }
-      })
-      .catch((err) => {
-        setIsLoading(false);
+    try {
+      await downloadResource({
+        path,
+        pdfRoute: `/api/getting_started_document/download/${value.document_slug}`,
+        title: value.title,
       });
+    } catch (e) {
+      enqueueSnackbar(e.message || "Could not download this file", {
+        variant: "error",
+      });
+    }
+    setIsLoading(false);
   };
   const handleEdit = (value) => {
     navigate(`/programmes/getting-started/${params.slug}/edit-document`, {
@@ -434,6 +435,7 @@ export const GettingStartingResources = () => {
         image_url={imageUrl}
         type={documentType}
         previewDoc={previewDoc}
+        pdf_path={previewDoc?.document_slug ? `/api/getting_started_document/download/${previewDoc.document_slug}` : undefined}
       />
     </>
   );

@@ -205,7 +205,7 @@ export default function DynamiteEventStartExpiryMembers({
             </button>
           </div>
           <div className="col-lg-8 col-sm-12 mb-3">
-            <h2>Dynamite Events Members</h2>
+            <h2>Event Members</h2>
           </div>
           <div className="col-lg-4 col-sm-12 text-end"></div>
         </div> */}

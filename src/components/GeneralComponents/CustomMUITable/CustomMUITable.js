@@ -25,7 +25,7 @@ import CustomPopoverSection from "src/components/MenuOption/CustomPopoverSection
 import TableFooter from "@mui/material/TableFooter";
 import MuiTableHeadList from "../../_dashboard/user/MuiTableHeadList";
 import UserListToolbarsForSearch from "src/components/_dashboard/user/UserListToolbarsForSearch";
-import { color } from "devexpress-reporting/scopes/reporting-chart-internal";
+// REMOVED DD IMPORT
 // ----------------------------------------------------------------------
 
 function descendingComparator(a, b, orderBy) {

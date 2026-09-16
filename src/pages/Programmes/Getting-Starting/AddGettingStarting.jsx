@@ -22,6 +22,8 @@ import { TimePicker } from "@mui/lab";
 import TinyEditor from "src/components/ckeditor/Ckeditor";
 import { AddGettingStartingApi } from "src/DAL/gettingStarting/GettingStarting";
 
+import KsStagesSelect, { appendKsStages } from "src/components/KsStagesSelect";
+
 const useStyles = makeStyles(() => ({
   loading: {
     marginLeft: "50%",
@@ -43,6 +45,8 @@ export default function AddGettingStarting() {
   const [audioFile, setAudio] = React.useState();
   const [detailDescriptionCk, setDetailDescriptionCk] = React.useState("");
 
+  // Key stages this session is for (16 Sep 2026).
+  const [ksStages, setKsStages] = React.useState([]);
   const [inputs, setInputs] = React.useState({
     title: "",
     status: "",
@@ -54,6 +58,19 @@ export default function AddGettingStarting() {
     detailed_description: "",
     video_duration: new Date("00"),
   });
+
+  // PDF attached to the session (13 Sep 2026)
+  const [pdfFile, setPdfFile] = React.useState(null);
+  const pdfChangedHandler = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 20 * 1024 * 1024) {
+      enqueueSnackbar("PDF must be 20mb or smaller", { variant: "error" });
+      e.target.value = "";
+      return;
+    }
+    setPdfFile(f);
+  };
 
   const fileChangedHandler = (e) => {
     setProfileImage(URL.createObjectURL(e.target.files[0]));
@@ -85,6 +102,11 @@ export default function AddGettingStarting() {
       enqueueSnackbar("detailed description is required", { variant: "error" });
       return;
     }
+    // A session must carry at least one of a video URL or a PDF (13 Sep 2026).
+    if (!inputs.videoUrl && !pdfFile) {
+      enqueueSnackbar("Add a video URL or a PDF", { variant: "error" });
+      return;
+    }
 
     if (!urlPatternValidation) {
       enqueueSnackbar("Enter Valid Video URL", { variant: "error" });
@@ -98,6 +120,7 @@ export default function AddGettingStarting() {
       const formData = new FormData();
       formData.append("title", inputs.title);
       formData.append("program_slug", state);
+      appendKsStages(formData, ksStages);
 
       if (file) {
         formData.append("main_image", inputs.image);
@@ -112,6 +135,9 @@ export default function AddGettingStarting() {
 
       if (audioFile) {
         formData.append("audio_file", audioFile);
+      }
+      if (pdfFile) {
+        formData.append("pdf_file", pdfFile);
       }
       if (!inputs.image) {
         enqueueSnackbar("Please upload the image", { variant: "error" });
@@ -206,11 +232,13 @@ export default function AddGettingStarting() {
               <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
                 <TextField
                   id="outlined-basic"
-                  label="Landing  Video Url "
+                  label="Landing Video Url"
                   variant="outlined"
                   fullWidth
-                  required
                   name="videoUrl"
+                  value={inputs.videoUrl || ""}
+                  onChange={handleChange}
+                  helperText="Optional - add a video URL or a PDF"
                 />
               </div>
 
@@ -331,7 +359,40 @@ export default function AddGettingStarting() {
                   <p className="text-secondary">{inputs.image.name}</p>
                 )}
               </div>
+              <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
+                <div className="row w-100 div-style ms-0 pt-0">
+                  <div className="col-5">
+                    <p className="">Upload PDF</p>
+                    <FormHelperText className="pt-0">
+                      PDF (max 20mb)
+                    </FormHelperText>
+                  </div>
+                  <div className="col-2"></div>
+                  <div className="col-5 text-end pt-2">
+                    <label htmlFor="contained-button-file-pdf">
+                      <Input
+                        accept="application/pdf,.pdf"
+                        id="contained-button-file-pdf"
+                        type="file"
+                        name="pdf_file"
+                        onChange={pdfChangedHandler}
+                      />
+                      <Button
+                        className="small-contained-button-search"
+                        startIcon={<FileUploadIcon />}
+                        component="span"
+                      >
+                        Upload
+                      </Button>
+                    </label>
+                  </div>
+                </div>
+                {pdfFile && <p className="text-secondary">{pdfFile.name}</p>}
+              </div>
 
+              <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
+                <KsStagesSelect value={ksStages} onChange={setKsStages} />
+              </div>
               <div className="col-12 mt-5">
                 <FormControl fullWidth>
                   <TextField

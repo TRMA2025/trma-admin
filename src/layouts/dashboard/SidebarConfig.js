@@ -463,6 +463,11 @@ sidebarConfig.push({
   icon: getIcon("fluent:settings-20-filled"),
   children: [
     {
+      title: "Admin Users",
+      path: "admin-users",
+      icon: getIcon("ic:round-manage-accounts"),
+    },
+    {
       title: "Default Setting",
       path: "default-setting",
 

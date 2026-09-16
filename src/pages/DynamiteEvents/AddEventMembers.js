@@ -93,11 +93,8 @@ export default function AddEventMembers() {
     const result = await dynamiteEventsCategoryListApi(params.event_id);
     if (result.code === 200) {
       console.log(result, "result of events");
-      // setDate(result.dynamite_event_info.start_date);
       // var new_date = moment(
-      //   result.dynamite_event_info.start_date,
       //   "YYYY-MM-DD"
-      // ).add(result.dynamite_event_info.no_of_days, "days");
       // setEndDate(new_date);
       setIsLoading(false);
     } else {

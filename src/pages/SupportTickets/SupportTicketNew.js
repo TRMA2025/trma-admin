@@ -293,7 +293,7 @@ export default function SupportTicket11({ trash }) {
                 <img src={elite} width="30px" className="bagde-image" />
               </Tooltip>
             ) : row.community_level == "dynamite" ? (
-              <Tooltip title="Dynamite">
+              <Tooltip title="BeeMe">
                 <img src={dynamite} width="30px" className="bagde-image" />
               </Tooltip>
             ) : row.community_level == "mastery" ? (

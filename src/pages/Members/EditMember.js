@@ -175,6 +175,7 @@ export default function EditMember() {
     selectedPrograms: [],
     school_organisation: "",
     work_role: "",
+    portal_region: "",
   });
 
   const changeHandlerCountry = (value) => {
@@ -314,6 +315,7 @@ export default function EditMember() {
         formData.append("program", JSON.stringify(selectedProgramIds));
         formData.append("school_organisation", inputs.school_organisation);
         formData.append("work_role", inputs.work_role);
+        formData.append("portal_region", inputs.portal_region || "");
 
         formData.append("email", inputs.email);
         // formData.append("password", inputs.password);
@@ -407,6 +409,7 @@ export default function EditMember() {
     postal_addess_info,
     school_organisation,
     work_role,
+    portal_region,
   } = state;
   console.log(postal_addess_info, "postal_addess_info");
 
@@ -459,6 +462,7 @@ export default function EditMember() {
       ["email"]: email,
       ["school_organisation"]: school_organisation,
       ["work_role"]: work_role,
+      ["portal_region"]: portal_region || "",
       // ["password"]: password,
       ["contact_number"]: contact_number,
       ["instagram_handle"]: instagram_handle,
@@ -645,6 +649,24 @@ export default function EditMember() {
                     <MenuItem value="Trust / MAT">Trust / MAT</MenuItem>
                     <MenuItem value="Parent">Parent</MenuItem>
                     <MenuItem value="Other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
+              <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
+                <FormControl fullWidth>
+                  <InputLabel id="portal-region-label">Portal Region *</InputLabel>
+                  <Select
+                    labelId="portal-region-label"
+                    id="portal-region-select"
+                    name="portal_region"
+                    value={inputs.portal_region || ""}
+                    label="Portal Region *"
+                    onChange={handleChange}
+                  >
+                    <MenuItem value="">Select region…</MenuItem>
+                    <MenuItem value="NI">Northern Ireland</MenuItem>
+                    <MenuItem value="ROI">Republic of Ireland</MenuItem>
+                    <MenuItem value="UK">England / Wales</MenuItem>
                   </Select>
                 </FormControl>
               </div>

@@ -3582,7 +3582,7 @@ button {
   font-size: 10px;
   margin-top: 2px;
 }
-.dynamite-level-image {
+.trma-level-image {
   height: 30px !important;
   width: 34px !important;
   margin-top: -4px;
@@ -4267,9 +4267,10 @@ button {
   align-items: center;
   justify-content: center;
 }
+/* 13 Sep 2026: was #fff, which rendered invisible on the light card. */
 .custom-search-field .MuiOutlinedInput-input {
-  color: #fff !important;
-  -webkit-text-fill-color: #fff !important;
+  color: #212b36 !important;
+  -webkit-text-fill-color: #212b36 !important;
 }
 .card-title {
   color: #fff;

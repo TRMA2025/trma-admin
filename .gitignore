@@ -24,3 +24,9 @@ yarn-debug.log*
 yarn-error.log*
 
 .eslintcache
+# release hygiene (16 Sep 2026)
+*.pre-*
+*.bak
+*.bak.*
+*.bak[0-9]*
+.env.*

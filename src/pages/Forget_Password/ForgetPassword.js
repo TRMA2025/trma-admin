@@ -72,10 +72,15 @@ export default function ForgetPassword() {
       enqueueSnackbar("Email is required", { variant: "error" });
     } else {
       setAdminEmail(_email);
-      const formData = new FormData();
-      formData.append("email", _email);
-
-      const result = await confirmEmail(formData);
+      /* Sent as a plain object, not FormData (15 Sep 2026). invokeApi sets
+         axios.defaults.headers.post Content-Type to application/json, and
+         axios 0.24 passes FormData through without clearing that header - so
+         the body went out as multipart while labelled JSON, bodyParser.json()
+         threw, and Express answered with a 400 HTML page. invokeApi then read
+         .message off that HTML, got undefined, and showed an empty error
+         toast: the Submit button appeared to do nothing. These routes accept
+         JSON. */
+      const result = await confirmEmail({ email: _email });
       if (result.code === 200) {
         enqueueSnackbar(result.message, { variant: "success" });
 
@@ -87,11 +92,10 @@ export default function ForgetPassword() {
   };
 
   const handleSubmitPinCode = async (pinCode) => {
-    const formData = new FormData();
-    formData.append("email", adminEmail);
-    formData.append("verification_code", pinCode);
-
-    const result = await confirmPinCode(formData);
+    const result = await confirmPinCode({
+      email: adminEmail,
+      verification_code: pinCode,
+    });
     if (result.code === 200) {
       setStatus(2);
     } else {
@@ -106,12 +110,13 @@ export default function ForgetPassword() {
     //   confirmPassword,
     //   "receive both Passwords"
     // );
-    const formData = new FormData();
-    formData.append("email", adminEmail);
-    formData.append("new_password", newPassword);
-    formData.append("confirm_password", confirmPassword);
-
-    const result = await updatePassword(formData);
+    // The backend validator only accepts email / password / confirm_password.
+    // It previously sent `new_password`, which Joi rejected (13 Sep 2026).
+    const result = await updatePassword({
+      email: adminEmail,
+      password: newPassword,
+      confirm_password: confirmPassword,
+    });
     if (result.code === 200) {
       setStatus(0);
       navigate("/login");
@@ -136,7 +141,7 @@ export default function ForgetPassword() {
         backgroundSize: "cover",
       }}
       className="bg bg-mobile">
-      <RootStyle title="Forget Password ">
+      <RootStyle title="Forgot Password">
         <AuthLayout>
           Back to Login? &nbsp;
           <Link
@@ -151,7 +156,7 @@ export default function ForgetPassword() {
         {/* <MHidden width="mdDown">
         <SectionStyle>
           <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-            Forget Password
+            Forgot Password
           </Typography>
           <img src="/static/illustrations/illustration_login.png" alt="login" />
         </SectionStyle>
@@ -161,7 +166,7 @@ export default function ForgetPassword() {
           <ContentStyle>
             <Stack sx={{ mb: 2 }}>
               {/* <Typography variant="h4" gutterBottom>
-              Forget Password
+              Forgot Password
             </Typography> */}
               {status === 0 ? (
                 <>
@@ -190,7 +195,7 @@ export default function ForgetPassword() {
               {status === 2 ? (
                 <>
                   <Typography variant="h4" gutterBottom sx={{ color: "white" }}>
-                    Forget Password
+                    Forgot Password
                   </Typography>
                   <Typography sx={{ color: "text.secondary" }}>
                     Enter your New Password.

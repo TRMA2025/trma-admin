@@ -85,7 +85,9 @@ export const confirmPinCode = async (data) => {
 
 export const updatePassword = async (data) => {
   const requestObj = {
-    path: `api/change_password/update_password.php`,
+    // 13 Sep 2026: was `api/change_password/update_password.php`, a dead path
+    // left over from another system, so step 3 of the reset always failed.
+    path: `/admin_users/reset_password`,
     method: "POST",
     headers: {
       // 'x-sh-auth': localStorage.getItem('token')

@@ -110,6 +110,7 @@ export default function EditLesson() {
     video_show_Status: "",
     order: "",
     video_duration: "",
+    ks_stages: [],
   });
   //console.log(inputs.video_duration, "statsussssss");
 
@@ -187,6 +188,9 @@ export default function EditLesson() {
       formData.append("order", inputs.order);
       formData.append("lesson_duration", formattedTime);
       formData.append("recording_delete_status", deletefromapi);
+      if (inputs.ks_stages && inputs.ks_stages.length > 0) {
+        inputs.ks_stages.forEach((s) => formData.append("ks_stages[]", s));
+      }
 
       if (audioFile) {
         formData.append("audio_file", audioFile);
@@ -253,6 +257,7 @@ export default function EditLesson() {
       ["video_duration"]: date,
       ["image"]: state.lesson_images.thumbnail_1,
       ["order"]: state.order,
+      ["ks_stages"]: state.ks_stages || [],
     }));
   }, []);
   //   console.log(typeof audioFile, "values of audio to be send ");
@@ -509,6 +514,24 @@ export default function EditLesson() {
                 )}
               </div>
 
+              
+              <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
+                <FormControl fullWidth>
+                  <InputLabel id="ks-stages-label">Key Stages</InputLabel>
+                  <Select
+                    labelId="ks-stages-label"
+                    multiple
+                    value={inputs.ks_stages || []}
+                    onChange={(e) => setInputs(prev => ({ ...prev, ks_stages: typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value }))}
+                    input={<OutlinedInput label="Key Stages" />}
+                    renderValue={(selected) => selected.join(', ')}
+                  >
+                    {["Foundation","KS1","KS2","Year 8","Year 9","Year 10","Junior Infant / Senior Infant","1st Class","2nd Class","3rd Class","4th Class","5th Class","6th Class","1st Year","2nd Year","3rd Year"].map((stage) => (
+                      <MenuItem key={stage} value={stage}>{stage}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </div>
               <div className="col-12 mt-5">
                 <FormControl fullWidth>
                   <TextField

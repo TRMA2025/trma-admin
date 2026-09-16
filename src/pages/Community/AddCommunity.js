@@ -305,7 +305,7 @@ export default function AddCommunity() {
               label="Level"
               onChange={handleChange}
             >
-              <MenuItem value="dynamite">Dynamite</MenuItem>
+              <MenuItem value="dynamite">BeeMe</MenuItem>
               <MenuItem value="mastery">Mastery</MenuItem>
               <MenuItem value="elite">Elite</MenuItem>
             </Select>
@@ -325,7 +325,7 @@ export default function AddCommunity() {
               <MenuItem value="general">General</MenuItem>
               <MenuItem value="program">Program</MenuItem>
               <MenuItem value="dynamite_membership">
-                Dynamite Membership
+                BeeMe Membership
               </MenuItem>
               <MenuItem value="basic_membership">Basic Membership</MenuItem>
             </Select>

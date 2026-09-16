@@ -179,7 +179,7 @@ export default function DynamiteEventVideoList() {
         </div>
         <div className="row mb-5">
           <div className="col-lg-6 col-sm-12">
-            <h2>Dynamite Event Videos</h2>
+            <h2>Event Videos</h2>
           </div>
           <div className="col-lg-6 col-sm-12 text-end ">
             <button onClick={handleNavigate} className="small-contained-button">

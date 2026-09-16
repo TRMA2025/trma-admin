@@ -36,7 +36,7 @@ import { deleteDynamiteEventCategoryVideo } from "src/DAL/WebsitePagesold/Dynami
 const TABLE_HEAD = [
   { id: "number", label: "#", alignRight: false },
   { id: "name", label: "Title", alignRight: false },
-  { id: "event_title", label: "Dynamite Events Title", alignRight: false },
+  { id: "event_title", label: "Event Title", alignRight: false },
   { id: "order", label: "Order", alignRight: false },
   { id: "status", label: "Status", alignRight: false },
   { id: "action", label: "Action", alignRight: false },

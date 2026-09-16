@@ -186,8 +186,22 @@ function LessonsDetail(props) {
       `/programmes/lesson/${lessonDetailInfo.lesson_slug}/lesson-evaliation`
     );
   };
+  const handleDuplicate = async () => {
+    if(!window.confirm("Duplicate this lesson?")) return;
+    try {
+      const r = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lesson/${lessonDetailInfo.lesson_slug}/duplicate`, {method:"POST", headers:{"x-sh-auth": localStorage.getItem("token")}});
+      const d = await r.json();
+      if(d.code===200){alert("Lesson duplicated!"); window.history.back();}else{alert(d.message);}
+    } catch(e){alert("Error duplicating lesson");}
+  };
   const handleNavigateSection = () => {
     //console.log("ok");
+    const handleDuplicate = async () => {
+    if(!window.confirm("Duplicate this lesson?")) return;
+    const r = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lesson/${lessonDetailInfo.lesson_slug}/duplicate`, {method:"POST", headers:{"x-sh-auth": localStorage.getItem("token")}});
+    const d = await r.json();
+    if(d.code===200){window.location.reload();}else{alert(d.message);}
+  };
     navigate(`/programmes/lesson/${lessonDetailInfo.lesson_slug}/section`, {
       state: lessonDetailInfo,
     });
@@ -282,6 +296,9 @@ function LessonsDetail(props) {
             anchorOrigin={{ vertical: "top", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
+            <MenuItem onClick={handleDuplicate} className="normal-font">
+              <EditIcon className="me-3" height="10px" /> Duplicate Lesson
+            </MenuItem>
             <MenuItem
               onClick={handleNavigateManageLesson}
               className="normal-font"

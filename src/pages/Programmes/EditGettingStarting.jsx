@@ -14,6 +14,10 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import LoadingButton from "@mui/lab/LoadingButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useSnackbar } from "notistack";
+import {
+  downloadGettingStartedPdf,
+  removeGettingStartedPdfApi,
+} from "src/DAL/gettingStarting/GettingStarting";
 import { makeStyles } from "@mui/styles";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -42,6 +46,8 @@ import {
   EditGettingStartingApi,
   Getting_starting_api,
 } from "src/DAL/gettingStarting/GettingStarting";
+
+import KsStagesSelect, { appendKsStages } from "src/components/KsStagesSelect";
 
 const useStyles = makeStyles(() => ({
   loading: {
@@ -97,6 +103,8 @@ export default function EditGettingStarting() {
   const params = useParams();
   let newid = params.id;
 
+  // Key stages this session is for (16 Sep 2026).
+  const [ksStages, setKsStages] = React.useState([]);
   const [inputs, setInputs] = React.useState({
     title: "",
     status: "",
@@ -118,6 +126,51 @@ export default function EditGettingStarting() {
       target: { value },
     } = event;
     setNavitems(typeof value === "string" ? value?.split(",") : value);
+  };
+
+  // PDF attached to the session (13 Sep 2026)
+  const [pdfFile, setPdfFile] = React.useState(null);
+  const [existingPdf, setExistingPdf] = React.useState("");
+  const [pdfBusy, setPdfBusy] = React.useState(false);
+  const pdfChangedHandler = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 20 * 1024 * 1024) {
+      enqueueSnackbar("PDF must be 20mb or smaller", { variant: "error" });
+      e.target.value = "";
+      return;
+    }
+    setPdfFile(f);
+  };
+  const handleDownloadPdf = async () => {
+    setPdfBusy(true);
+    try {
+      await downloadGettingStartedPdf(
+        state.getting_started_slug,
+        (inputs.title || state.title || "getting-started") + ".pdf"
+      );
+    } catch (err) {
+      enqueueSnackbar("Could not download this PDF", { variant: "error" });
+    }
+    setPdfBusy(false);
+  };
+  const handleRemovePdf = async () => {
+    if (
+      !window.confirm(
+        "Remove this PDF from the session? The stored file itself is kept and is not deleted."
+      )
+    ) {
+      return;
+    }
+    setPdfBusy(true);
+    const result = await removeGettingStartedPdfApi(state.getting_started_slug);
+    if (result.code === 200) {
+      setExistingPdf("");
+      enqueueSnackbar(result.message, { variant: "success" });
+    } else {
+      enqueueSnackbar(result.message, { variant: "error" });
+    }
+    setPdfBusy(false);
   };
 
   const fileChangedHandler = (e) => {
@@ -160,8 +213,15 @@ export default function EditGettingStarting() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (urlPatternValidation(inputs.videoUrl) === false) {
+    // Video URL is optional (13 Sep 2026) - only validate a non-empty one.
+    if (inputs.videoUrl && urlPatternValidation(inputs.videoUrl) === false) {
       enqueueSnackbar("Enter Valid Video URL", { variant: "error" });
+      return;
+    }
+    // A session must carry at least one of a video URL or a PDF. An existing
+    // stored PDF counts, so editing a PDF-only session does not force a video.
+    if (!inputs.videoUrl && !pdfFile && !existingPdf) {
+      enqueueSnackbar("Add a video URL or a PDF", { variant: "error" });
       return;
     }
 
@@ -174,6 +234,7 @@ export default function EditGettingStarting() {
     const formData = new FormData();
     formData.append("title", inputs.title);
     formData.append("short_description", inputs.short_description);
+    appendKsStages(formData, ksStages);
     formData.append("detailed_description", detailDescriptionCk);
     formData.append("status", inputs.programStatus);
     formData.append("is_paid", inputs.is_paid);
@@ -183,6 +244,9 @@ export default function EditGettingStarting() {
 
     if (audioFile) {
       formData.append("audio_file", audioFile);
+    }
+    if (pdfFile) {
+      formData.append("pdf_file", pdfFile);
     }
     if (fileNew) {
       formData.append("main_image", inputs.image);
@@ -224,7 +288,9 @@ export default function EditGettingStarting() {
   React.useEffect(() => {
     handleDetail();
     setOldAudio(state.audio_file);
+    setExistingPdf(state.pdf_file_url || "");
     setDetailDescriptionCk(state.detailed_description);
+    setKsStages(Array.isArray(state?.ks_stages) ? state.ks_stages : []);
     let Duration_value = "Wed Apr 27 2022 " + " " + state?.duration;
     const timeParts = state?.duration?.split(":");
     const date = new Date(
@@ -317,8 +383,7 @@ export default function EditGettingStarting() {
               <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
                 <TextField
                   id="outlined-basic"
-                  label="Landing  Video Url "
-                  required
+                  label="Landing Video Url"
                   variant="outlined"
                   fullWidth
                   name="videoUrl"
@@ -474,6 +539,60 @@ export default function EditGettingStarting() {
                 )}
               </div>
 
+              <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
+                <div className="row w-100 div-style ms-0 pt-0">
+                  <div className="col-5">
+                    <p className="">Upload PDF</p>
+                    <FormHelperText className="pt-0">
+                      PDF (max 20mb)
+                    </FormHelperText>
+                  </div>
+                  <div className="col-2">
+                    {existingPdf && (
+                      <Button
+                        disabled={pdfBusy}
+                        onClick={handleDownloadPdf}
+                        className="small-contained-button-search"
+                      >
+                        Download PDF
+                      </Button>
+                    )}
+                  </div>
+                  <div className="col-5 text-end pt-2">
+                    {existingPdf && (
+                      <Button
+                        disabled={pdfBusy}
+                        onClick={handleRemovePdf}
+                        color="error"
+                        className="me-2"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                    <label htmlFor="contained-button-file-pdf">
+                      <Input
+                        accept="application/pdf,.pdf"
+                        id="contained-button-file-pdf"
+                        type="file"
+                        name="pdf_file"
+                        onChange={pdfChangedHandler}
+                      />
+                      <Button
+                        className="small-contained-button-search"
+                        startIcon={<FileUploadIcon />}
+                        component="span"
+                      >
+                        Upload
+                      </Button>
+                    </label>
+                  </div>
+                </div>
+                {pdfFile && <p className="text-secondary">{pdfFile.name}</p>}
+              </div>
+
+              <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
+                <KsStagesSelect value={ksStages} onChange={setKsStages} />
+              </div>
               <div className="col-12 mt-5">
                 <FormControl fullWidth>
                   <TextField

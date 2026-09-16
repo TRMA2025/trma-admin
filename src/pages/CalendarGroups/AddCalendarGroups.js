@@ -42,7 +42,6 @@ import { activeMemberListing } from "src/DAL/member/member";
 // import { websiteEventListApi } from "src/DAL/WebsitePages/websitepages";
 import { eventListApi } from "src/DAL/Events/events";
 import { dynamiteEventsListApi } from "src/DAL/WebsitePagesold/DynamiteEvents/DynamiteEvents";
-// import { dynamiteEventsListApi } from "src/DAL/WebsitePages/DynamiteEvents/DynamiteEvents";
 // import MWEditor from "src/components/Editor/CKEditor";
 
 const useStyles = makeStyles(() => ({

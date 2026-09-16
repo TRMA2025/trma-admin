@@ -160,7 +160,6 @@ export default function UpdateGeneralSetting() {
         ["disclaimer_status"]: generalSetting?.is_disclaimer_show,
         // ["pixelCodeHeader"]: generalSetting.pixel_code_header,
         // ["pixelCodeBody"]: generalSetting.pixel_code_body,
-        // ["dynamite_event"]: generalSetting.dynamite_event,
         ["analytic_google_code"]: generalSetting?.analytic_google_code,
       }));
       setOldBrandLogo(generalSetting?.brand_logo);

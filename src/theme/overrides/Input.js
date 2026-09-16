@@ -10,9 +10,24 @@ export default function Input(theme) {
           },
         },
         input: {
+          // Guarantee legible input text (13 Sep 2026). Individual screens had
+          // been setting `color: white` on a white card, making typed text
+          // invisible. Set it once here so every TextField is readable, and
+          // pin -webkit-text-fill-color, which otherwise wins over `color`.
+          color: theme.palette.text.primary,
+          WebkitTextFillColor: theme.palette.text.primary,
+          caretColor: theme.palette.text.primary,
           "&::placeholder": {
             opacity: 1,
             color: theme.palette.text.disabled,
+          },
+          // Chrome ignores background-color on autofilled fields, so the
+          // background has to be painted with an inset shadow.
+          "&:-webkit-autofill": {
+            WebkitTextFillColor: theme.palette.text.primary,
+            caretColor: theme.palette.text.primary,
+            WebkitBoxShadow: `0 0 0 1000px ${theme.palette.background.paper} inset`,
+            transition: "background-color 9999s ease-in-out 0s",
           },
         },
       },

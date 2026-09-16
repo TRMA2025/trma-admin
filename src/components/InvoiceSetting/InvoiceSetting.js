@@ -341,19 +341,7 @@ export default function InvoiceSetting() {
         <div class="card main-card">
           <div class="card-body">
             <div className="row">
-              {/* <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
-          <TextField
-            id="outlined-basic"
-            label="Dynamite Digital Address"
-            variant="outlined"
-            fullWidth
-            name="dynamite_digital_address"
-            required
-            value={inputs.dynamite_digital_address}
-            onChange={handleChange}
-          />
-        </div> */}
-              <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
+                            <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
                 <TextField
                   id="outlined-basic"
                   label="Invoice From"

@@ -40,6 +40,8 @@ import { menuList } from "src/DAL/Menu/Menu";
 import {
   AddProgrammeApi,
   EditProgrammeDocumentApi,
+  downloadProgrammeDocumentPdf,
+  removeProgrammeDocumentFileApi,
 } from "src/DAL/Programme/Programme";
 import { AddLessonApi, AddLessonRecordingApi } from "src/DAL/lessons/lessons";
 import { DatePicker, TimePicker } from "@mui/lab";
@@ -48,6 +50,8 @@ import {
   EditLessonDocumentApi,
 } from "src/DAL/lessonDocument/LessonDocument";
 import { s3baseUrl } from "src/config/config";
+import KsStagesSelect, { appendKsStages } from "src/components/KsStagesSelect";
+
 // import { get_root_value } from "src/utils/domUtils";
 
 const useStyles = makeStyles(() => ({
@@ -108,6 +112,8 @@ export default function EditProgrammeDocument() {
   const [otherStatus, setOtherStatus] = useState(false);
   const [isTypeChange, setIsTypeChange] = useState(false);
   const [otherDocumentName, setOtherDocumentName] = React.useState("");
+  // Key stages this resource is for (16 Sep 2026).
+  const [ksStages, setKsStages] = React.useState([]);
   const [inputs, setInputs] = React.useState({
     title: "",
     status: "true",
@@ -176,6 +182,46 @@ export default function EditProgrammeDocument() {
     setDate(newValue);
   };
 
+  // Resource PDFs are private in storage (13 Sep 2026): fetch via the
+  // authenticated route rather than linking to S3.
+  const [attachedFile, setAttachedFile] = React.useState(
+    state?.document_file_url || ""
+  );
+  const [fileBusy, setFileBusy] = React.useState(false);
+  const isPdf = /\.pdf$/i.test(attachedFile || "");
+
+  const handleDownloadPdf = async () => {
+    setFileBusy(true);
+    try {
+      await downloadProgrammeDocumentPdf(
+        state.document_slug,
+        (inputs?.title || state.title || "resource") + ".pdf"
+      );
+    } catch (err) {
+      enqueueSnackbar("Could not download this file", { variant: "error" });
+    }
+    setFileBusy(false);
+  };
+
+  const handleRemoveFile = async () => {
+    if (
+      !window.confirm(
+        "Remove this file from the resource? The stored file itself is kept and is not deleted."
+      )
+    ) {
+      return;
+    }
+    setFileBusy(true);
+    const result = await removeProgrammeDocumentFileApi(state.document_slug);
+    if (result.code === 200) {
+      setAttachedFile("");
+      enqueueSnackbar(result.message, { variant: "success" });
+    } else {
+      enqueueSnackbar(result.message, { variant: "error" });
+    }
+    setFileBusy(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (oldAudio) {
@@ -219,6 +265,7 @@ export default function EditProgrammeDocument() {
     formData.append("detailed_description", inputs.detailed_description);
     formData.append("status", inputs.status);
     formData.append("document_type", inputs.docType);
+    appendKsStages(formData, ksStages);
     formData.append("order", inputs.order);
 
     if (inputs.image_thumbnail) {
@@ -306,6 +353,7 @@ export default function EditProgrammeDocument() {
 
   React.useEffect(() => {
     setActiveType(state.document_type);
+    setKsStages(Array.isArray(state?.ks_stages) ? state.ks_stages : []);
     if (state?.document_type == "other_document") {
       setOtherDocument(state?.document_file_url);
     } else if (state?.document_type == "image") {
@@ -390,7 +438,7 @@ export default function EditProgrammeDocument() {
                     <MenuItem value="image">Image</MenuItem>
                     <MenuItem value="audio">Audio</MenuItem>
                     <MenuItem value="embed_code">Embed Code</MenuItem>
-                    <MenuItem value="other_document">Other</MenuItem>
+                    <MenuItem value="other_document">PDF / Document</MenuItem>
                   </Select>
                 </FormControl>
               </div>
@@ -425,6 +473,9 @@ export default function EditProgrammeDocument() {
                 />
               </div>
 
+              <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
+                <KsStagesSelect value={ksStages} onChange={setKsStages} />
+              </div>
               {inputs.docType === "audio" && (
                 <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
                   <div className="row w-100 div-style ms-0 pt-0">
@@ -529,7 +580,7 @@ export default function EditProgrammeDocument() {
                 <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
                   <div className="row w-100 div-style ms-0 pt-0">
                     <div className="col-5">
-                      <p className="">Upload Other Resource *</p>
+                      <p className="">Upload PDF or Document *</p>
                       <FormHelperText className="pt-0">
                         Other Resource *("PDF", "DOC", "XLSX",
                         "DOCX","CSV","200MB")
@@ -542,12 +593,20 @@ export default function EditProgrammeDocument() {
                     </div>
                     {inputs.docType === "other_document" && (
                       <div className="col-12 d-flex justify-content-end align-items-center">
-                        {state.document_file_url && (
-                          <div className="me-3 mt-0 mb-2">
-                            {isTypeChange !== true && (
+                        {attachedFile && isTypeChange !== true && (
+                          <div className="me-3 mt-0 mb-2 d-flex align-items-center">
+                            {isPdf ? (
+                              <Button
+                                disabled={fileBusy}
+                                onClick={handleDownloadPdf}
+                                className="small-contained-button-search"
+                              >
+                                Download PDF
+                              </Button>
+                            ) : (
                               <a
-                                style={{ padding: "12px", height: "200px" }}
-                                href={s3baseUrl + state.document_file_url}
+                                style={{ padding: "12px" }}
+                                href={s3baseUrl + attachedFile}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="small-contained-button-search a-style"
@@ -555,6 +614,15 @@ export default function EditProgrammeDocument() {
                                 View File
                               </a>
                             )}
+                            <Button
+                              disabled={fileBusy}
+                              onClick={handleRemoveFile}
+                              startIcon={<DeleteIcon />}
+                              className="ms-2"
+                              color="error"
+                            >
+                              Remove
+                            </Button>
                           </div>
                         )}
 

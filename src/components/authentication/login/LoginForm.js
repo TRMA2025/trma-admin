@@ -52,7 +52,7 @@ export default function LoginForm({ onhandleLogin, isLoading }) {
           required
           sx={{
             input: {
-              color: "black",
+              color: "#212b36",
             },
           }}
           value={email}
@@ -71,7 +71,7 @@ export default function LoginForm({ onhandleLogin, isLoading }) {
           required
           sx={{
             input: {
-              color: "black",
+              color: "#212b36",
             },
           }}
           value={password}

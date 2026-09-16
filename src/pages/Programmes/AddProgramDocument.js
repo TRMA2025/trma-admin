@@ -44,6 +44,8 @@ import {
 import { AddLessonApi, AddLessonRecordingApi } from "src/DAL/lessons/lessons";
 import { DatePicker, TimePicker } from "@mui/lab";
 import { AddLessonDocumentApi } from "src/DAL/lessonDocument/LessonDocument";
+import KsStagesSelect, { appendKsStages } from "src/components/KsStagesSelect";
+
 // import { get_root_value } from "src/utils/domUtils";
 
 const useStyles = makeStyles(() => ({
@@ -101,6 +103,8 @@ export default function AddProgrammeDocument() {
   const [recordingDate, setRecordingDate] = React.useState(null);
   //   const [value, setValue] = React.useState(new Date());
 
+  // Key stages this resource is for (16 Sep 2026).
+  const [ksStages, setKsStages] = React.useState([]);
   const [inputs, setInputs] = React.useState({
     title: "",
     status: "true",
@@ -196,6 +200,7 @@ export default function AddProgrammeDocument() {
 
     formData.append("status", inputs.status);
     formData.append("document_type", inputs.docType);
+    appendKsStages(formData, ksStages);
 
     if (inputs.docType == "audio") {
       formData.append("document_file", audioFile);
@@ -287,7 +292,7 @@ export default function AddProgrammeDocument() {
                     <MenuItem value="image">Image</MenuItem>
                     <MenuItem value="audio">Audio</MenuItem>
                     <MenuItem value="embed_code">Embed Code</MenuItem>
-                    <MenuItem value="other_document">Other</MenuItem>
+                    <MenuItem value="other_document">PDF / Document</MenuItem>
                   </Select>
                 </FormControl>
               </div>
@@ -310,6 +315,9 @@ export default function AddProgrammeDocument() {
                 </FormControl>
               </div>
 
+              <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
+                <KsStagesSelect value={ksStages} onChange={setKsStages} />
+              </div>
               {inputs.docType === "audio" && (
                 <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
                   <div className="row w-100 div-style ms-0 pt-0">
@@ -399,7 +407,7 @@ export default function AddProgrammeDocument() {
                 <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
                   <div className="row w-100 div-style ms-0 pt-0">
                     <div className="col-5">
-                      <p className="">Upload Other Resource *</p>
+                      <p className="">Upload PDF or Document *</p>
                       <FormHelperText className="pt-0">
                         Other Resource *("PDF", "DOC", "XLSX",
                         "DOCX","CSV","200MB")

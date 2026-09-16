@@ -29,6 +29,8 @@ import {
   list_challenge_resources,
 } from "src/DAL/GrowthTools/Challenges";
 
+import { downloadResource } from "src/utils/downloadResource";
+
 const imageLink = {
   docx: wordImage,
   mp3: audioImage,
@@ -111,21 +113,21 @@ export default function ChallengeResources() {
     } else {
       path = value.resource_file;
     }
+    /* PDFs are private: go through the authenticated route, not storage
+       (16 Sep 2026). A failure now says so instead of a blank toast. */
     setIsLoading(true);
-    const file_path = `${s3baseUrl}${path}`;
-    console.log(file_path, "file_path");
-    fetch(file_path)
-      .then(async (res) => {
-        if (res.status === 200) {
-          let blob = await res.blob();
-          saveAs(blob, path);
-          setIsLoading(false);
-        } else {
-          enqueueSnackbar(res.statusText, { variant: "error" });
-          setIsLoading(false);
-        }
-      })
-      .catch((err) => {});
+    try {
+      await downloadResource({
+        path,
+        pdfRoute: `/api/challenges_resources/download_challenge_resource/${value._id}`,
+        title: value.title,
+      });
+    } catch (e) {
+      enqueueSnackbar(e.message || "Could not download this file", {
+        variant: "error",
+      });
+    }
+    setIsLoading(false);
   };
   const handleEdit = (value) => {
     navigate(`/challenge/${params.id}/challenge-resources-edit/${value._id}`, {
@@ -297,6 +299,7 @@ export default function ChallengeResources() {
         image_url={imageUrl}
         type={documentType}
         previewDoc={previewDoc}
+        pdf_path={previewDoc?._id ? `/api/challenges_resources/download_challenge_resource/${previewDoc._id}` : undefined}
       />
     </>
   );
