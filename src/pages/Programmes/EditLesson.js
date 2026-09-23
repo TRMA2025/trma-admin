@@ -101,6 +101,7 @@ export default function EditLesson() {
     status: "",
     programStatus: "true",
     is_paid: true,
+    is_locked: false,
     showStatus: "",
     image: {},
     accessType: "",
@@ -184,6 +185,7 @@ export default function EditLesson() {
       formData.append("detailed_description", detailDescriptionCk);
       formData.append("status", inputs.programStatus);
       formData.append("is_paid", inputs.is_paid);
+      formData.append("is_locked", inputs.is_locked);
       formData.append("landing_lesson_video_url", inputs.videoUrl);
       formData.append("order", inputs.order);
       formData.append("lesson_duration", formattedTime);
@@ -251,6 +253,7 @@ export default function EditLesson() {
       ["status"]: state.status,
       ["programStatus"]: state.status,
       ["is_paid"]: state?.is_paid,
+      ["is_locked"]: state?.is_locked === true,
       ["videoUrl"]: state.landing_lesson_video_url,
       ["short_description"]: state.short_description,
       ["detailed_description"]: state.detailed_description,
@@ -398,6 +401,24 @@ export default function EditLesson() {
                   >
                     <MenuItem value={true}>Paid</MenuItem>
                     <MenuItem value={false}>Free</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
+              <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
+                <FormControl fullWidth>
+                  <InputLabel id="lesson-lock-label">
+                    Lesson Access *
+                  </InputLabel>
+                  <Select
+                    labelId="lesson-lock-label"
+                    id="lesson-lock-select"
+                    name="is_locked"
+                    value={inputs.is_locked}
+                    label="Lesson Access *"
+                    onChange={handleChange}
+                  >
+                    <MenuItem value={false}>Unlocked</MenuItem>
+                    <MenuItem value={true}>Locked</MenuItem>
                   </Select>
                 </FormControl>
               </div>
