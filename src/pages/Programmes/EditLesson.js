@@ -38,7 +38,11 @@ import { IconButton, Divider, CircularProgress, Tooltip } from "@mui/material";
 import { object } from "prop-types";
 import { menuList } from "src/DAL/Menu/Menu";
 import { AddProgrammeApi } from "src/DAL/Programme/Programme";
-import { AddLessonApi, EditLessonApi } from "src/DAL/lessons/lessons";
+import {
+  AddLessonApi,
+  EditLessonApi,
+  lesson_detail_api,
+} from "src/DAL/lessons/lessons";
 import { TimePicker } from "@mui/lab";
 import { s3baseUrl } from "src/config/config";
 import TinyEditor from "src/components/ckeditor/Ckeditor";
@@ -74,10 +78,34 @@ function getStyles(name, personName, theme) {
   };
 }
 
+// Lesson records are not uniform (some predate fields the form expects, e.g.
+// lesson_duration), so everything the form reads is normalised here and a
+// missing or odd value never takes the page down.
+const durationToDate = (lesson) => {
+  let parts = null;
+  if (typeof lesson.lesson_duration === "string") {
+    parts = lesson.lesson_duration.split(":").map((p) => parseInt(p, 10));
+  } else if (Number.isFinite(lesson.lesson_duration_seconds)) {
+    const t = Math.max(0, Math.floor(lesson.lesson_duration_seconds));
+    parts = [Math.floor(t / 3600), Math.floor((t % 3600) / 60), t % 60];
+  }
+  if (!parts || parts.length !== 3 || parts.some((p) => !Number.isFinite(p))) {
+    parts = [0, 0, 0];
+  }
+  return new Date(0, 0, 0, parts[0], parts[1], parts[2]);
+};
+
+const toStageList = (value) => {
+  if (Array.isArray(value)) return value.filter((s) => typeof s === "string");
+  if (typeof value === "string" && value) return [value];
+  return [];
+};
 
 export default function EditLesson() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const params = useParams();
+  const lessonSlug = state?.lesson_slug || params.id;
   const classes = useStyles();
   const [isLoading, setIsLoading] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
@@ -207,7 +235,7 @@ export default function EditLesson() {
       console.log(...formData, "formattedTimeform data value");
 
       setIsLoading(true);
-      const result = await EditLessonApi(formData, state.lesson_slug);
+      const result = await EditLessonApi(formData, lessonSlug);
       if (result.code === 200) {
         //console.log(result, "result");
         enqueueSnackbar(result.message, { variant: "success" });
@@ -232,36 +260,44 @@ export default function EditLesson() {
     setInputs((values) => ({ ...values, [name]: value }));
   };
 
-  React.useEffect(() => {
-    setOldAudio(state.audio_file);
-    console.log(state, "statestatestatestate");
-    setDetailDescriptionCk(state.detailed_description);
-    let Duration_value = "Wed Apr 27 2022 " + " " + state.lesson_duration;
-    const timeParts = state.lesson_duration.split(":");
-    const date = new Date(
-      0,
-      0,
-      0,
-      parseInt(timeParts[0]),
-      parseInt(timeParts[1]),
-      parseInt(timeParts[2])
-    );
-
+  const loadLesson = (lesson) => {
+    setOldAudio(lesson.audio_file || undefined);
+    setDetailDescriptionCk(lesson.detailed_description || "");
     setInputs((prevState) => ({
       ...prevState,
-      ["title"]: state.title,
-      ["status"]: state.status,
-      ["programStatus"]: state.status,
-      ["is_paid"]: state?.is_paid,
-      ["is_locked"]: state?.is_locked === true,
-      ["videoUrl"]: state.landing_lesson_video_url,
-      ["short_description"]: state.short_description,
-      ["detailed_description"]: state.detailed_description,
-      ["video_duration"]: date,
-      ["image"]: state.lesson_images.thumbnail_1,
-      ["order"]: state.order,
-      ["ks_stages"]: state.ks_stages || [],
+      ["title"]: lesson.title || "",
+      ["status"]: lesson.status,
+      ["programStatus"]: String(lesson.status) === "true" ? "true" : "false",
+      ["is_paid"]: String(lesson.is_paid) === "true",
+      ["is_locked"]: lesson.is_locked === true,
+      ["videoUrl"]: lesson.landing_lesson_video_url || "",
+      ["short_description"]: lesson.short_description || "",
+      ["detailed_description"]: lesson.detailed_description || "",
+      ["video_duration"]: durationToDate(lesson),
+      ["image"]: lesson.lesson_images?.thumbnail_1 || "",
+      ["order"]: lesson.order ?? "",
+      ["ks_stages"]: toStageList(lesson.ks_stages),
     }));
+  };
+
+  React.useEffect(() => {
+    if (state) {
+      loadLesson(state);
+      return;
+    }
+    // Opened by URL (refresh, bookmark): there is no router state, so fetch it.
+    (async () => {
+      setIsLoading(true);
+      const result = await lesson_detail_api(lessonSlug);
+      if (result.code === 200 && result.lesson) {
+        loadLesson(result.lesson);
+      } else {
+        enqueueSnackbar(result.message || "Lesson not found", {
+          variant: "error",
+        });
+      }
+      setIsLoading(false);
+    })();
   }, []);
   //   console.log(typeof audioFile, "values of audio to be send ");
 
@@ -528,10 +564,10 @@ export default function EditLesson() {
                     </label>
                   </div>
                 </div>
-                {inputs.image.name == "" ? (
-                  ""
-                ) : (
+                {inputs.image?.name ? (
                   <p className="text-secondary">{inputs.image.name}</p>
+                ) : (
+                  ""
                 )}
               </div>
 
@@ -542,7 +578,7 @@ export default function EditLesson() {
                   <Select
                     labelId="ks-stages-label"
                     multiple
-                    value={inputs.ks_stages || []}
+                    value={toStageList(inputs.ks_stages)}
                     onChange={(e) => setInputs(prev => ({ ...prev, ks_stages: typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value }))}
                     input={<OutlinedInput label="Key Stages" />}
                     renderValue={(selected) => selected.join(', ')}
