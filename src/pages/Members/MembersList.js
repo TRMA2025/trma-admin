@@ -117,6 +117,7 @@ const TABLE_HEAD = [
   { id: "CreatedAt", label: "Created At", alignRight: false },
   { id: "status", label: "Status", alignRight: false },
   { id: "approval_status", label: "Approval", alignRight: false },
+  { id: "login_email", label: "Login email", alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -160,7 +161,12 @@ const useStyles = makeStyles(() => ({
 }));
 export default function MembersList() {
   const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const closeSnackbarAction = (key) => (
+    <IconButton size="small" color="inherit" onClick={() => closeSnackbar(key)}>
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
   const [biology, setBiology] = useState("");
@@ -667,8 +673,13 @@ export default function MembersList() {
         variant: "success",
       });
     } else {
-      enqueueSnackbar(result.message, { variant: "error" });
+      // Stays on screen until closed: login details did not go out.
+      enqueueSnackbar(
+        result.message || "Login details were NOT sent.",
+        { variant: "error", persist: true, action: closeSnackbarAction }
+      );
     }
+    searchFunction();
   };
   const handleAgreeMultiDelete = (value) => {
     setOpenMultiDelete(true);
@@ -1049,12 +1060,34 @@ export default function MembersList() {
                               : "Approved"}
                           </Label>
                         </TableCell>
+                        <TableCell align="left">
+                          {row.login_email?.status ? (
+                            <span title={row.login_email.reason || ""}>
+                              <Label
+                                variant="ghost"
+                                color={
+                                  row.login_email.status === "sent"
+                                    ? "success"
+                                    : "error"
+                                }
+                              >
+                                {row.login_email.status === "sent"
+                                  ? "Sent"
+                                  : row.login_email.status === "bounced"
+                                  ? "Bounced"
+                                  : "Failed"}
+                              </Label>
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
                       </TableRow>
                     );
                   })}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={11} />
+                      <TableCell colSpan={12} />
                     </TableRow>
                   )}
                 </TableBody>

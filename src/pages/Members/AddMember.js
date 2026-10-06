@@ -26,6 +26,7 @@ import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import Stack from "@mui/material/Stack";
 import moment from "moment";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CloseIcon from "@mui/icons-material/Close";
 import countryList from "react-select-country-list";
 import { TimeZones } from "src/utils/constant";
 
@@ -84,7 +85,7 @@ function getStyles(name, personName, theme) {
 export default function AddMember() {
   const navigate = useNavigate();
   const classes = useStyles();
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [iswaiting, setiswaiting] = useState(false);
   const theme = useTheme();
   const [value, setValue] = React.useState("Controlled");
@@ -340,7 +341,23 @@ export default function AddMember() {
         if (result.code === 200) {
           //console.log(result, "result");
           setProgramName(result.program);
-          enqueueSnackbar(result.message, { variant: "success" });
+          if (result.login_email && !result.login_email.sent) {
+            // Stays on screen until closed: login details did not go out.
+            enqueueSnackbar(
+              `Member added, but login details were NOT sent: ${result.login_email.reason}`,
+              {
+                variant: "error",
+                persist: true,
+                action: (key) => (
+                  <IconButton size="small" color="inherit" onClick={() => closeSnackbar(key)}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                ),
+              }
+            );
+          } else {
+            enqueueSnackbar(result.message, { variant: "success" });
+          }
           navigate(-1);
         } else {
           //console.log(result, "error case");
