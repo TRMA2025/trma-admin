@@ -79,6 +79,7 @@ import {
   memberCompleteListing,
   memberListing,
   member_login_api,
+  resendWelcomeEmailApi,
 } from "src/DAL/member/member";
 import { htmlDecode } from "src/utils/convertHtml";
 import CustomConfirmation from "src/components/ModalPopover/Confirmation";
@@ -175,6 +176,8 @@ export default function MembersList() {
 
   const [rowsPerPage, setRowsPerPage] = useState(50);
   const [openDelete, setOpenDelete] = useState(false);
+  const [openResendWelcome, setOpenResendWelcome] = useState(false);
+  const [resendWelcomeDoc, setResendWelcomeDoc] = useState(null);
   const [openMultiDelete, setOpenMultiDelete] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
@@ -650,6 +653,23 @@ export default function MembersList() {
     setDeleteDoc(value);
     setOpenDelete(true);
   };
+  const handleAgreeResendWelcome = (value) => {
+    setResendWelcomeDoc(value);
+    setOpenResendWelcome(true);
+  };
+  const handleResendWelcome = async () => {
+    setOpenResendWelcome(false);
+    const result = await resendWelcomeEmailApi({
+      member_id: resendWelcomeDoc.id || resendWelcomeDoc._id,
+    });
+    if (result.code === 200) {
+      enqueueSnackbar(`Welcome email sent to ${result.data?.email}`, {
+        variant: "success",
+      });
+    } else {
+      enqueueSnackbar(result.message, { variant: "error" });
+    }
+  };
   const handleAgreeMultiDelete = (value) => {
     setOpenMultiDelete(true);
   };
@@ -761,6 +781,11 @@ export default function MembersList() {
       handleClick: handleChangePassword,
     },
     {
+      label: "Resend Welcome Email",
+      icon: "ic:outline-email",
+      handleClick: handleAgreeResendWelcome,
+    },
+    {
       label: "Manage Programme Access",
       icon: "ant-design:key",
       handleClick: handleChangeAccess,
@@ -816,6 +841,12 @@ export default function MembersList() {
         setOpen={setOpenDelete}
         title={"Are you sure you want to delete ?"}
         handleAgree={handleDelete}
+      />
+      <CustomConfirmation
+        open={openResendWelcome}
+        setOpen={setOpenResendWelcome}
+        title={`Send a new temporary password and login details to ${resendWelcomeDoc?.email || "this member"}? Their current password will stop working.`}
+        handleAgree={handleResendWelcome}
       />
       <CustomConfirmation
         open={openMultiDelete}

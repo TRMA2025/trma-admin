@@ -396,3 +396,14 @@ export const memberApprove = async (id) => {
   };
   return invokeApi(requestObj);
 };
+export const resendWelcomeEmailApi = async (data) => {
+  const requestObj = {
+    path: `/api/member/resend_welcome_email`,
+    method: "POST",
+    headers: {
+      "x-sh-auth": localStorage.getItem("token"),
+    },
+    postData: data,
+  };
+  return invokeApi(requestObj);
+};
