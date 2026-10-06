@@ -407,3 +407,13 @@ export const resendWelcomeEmailApi = async (data) => {
   };
   return invokeApi(requestObj);
 };
+export const schoolAdministratorsApi = async () => {
+  const requestObj = {
+    path: `/api/member/school_administrators`,
+    method: "GET",
+    headers: {
+      "x-sh-auth": localStorage.getItem("token"),
+    },
+  };
+  return invokeApi(requestObj);
+};

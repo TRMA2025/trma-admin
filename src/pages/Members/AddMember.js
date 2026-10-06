@@ -44,7 +44,7 @@ import {
   programmeActiveListing,
 } from "src/DAL/Programme/Programme";
 import { countries } from "src/utils/country";
-import { AddMemberApi } from "src/DAL/member/member";
+import { AddMemberApi, schoolAdministratorsApi } from "src/DAL/member/member";
 import { consultantListing } from "src/DAL/consultant/consultant";
 import { lightGreen } from "@mui/material/colors";
 
@@ -90,6 +90,8 @@ export default function AddMember() {
   const [value, setValue] = React.useState("Controlled");
   const [personName, setPersonName] = React.useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [schoolAdmins, setSchoolAdmins] = useState([]);
+  const [schoolAdmin, setSchoolAdmin] = useState(null);
   const [file, setProfileImage] = React.useState();
   const [audioFile, setAudio] = React.useState();
   const [groups, setGroups] = React.useState([]);
@@ -285,12 +287,19 @@ export default function AddMember() {
         enqueueSnackbar("No of days must be positive number ", {
           variant: "error",
         });
+      } else if (inputs.work_role === "Teacher" && !schoolAdmin) {
+        enqueueSnackbar("Choose the teacher's school administrator", {
+          variant: "error",
+        });
       } else {
         const formData = new FormData();
         formData.append("first_name", inputs.first_name);
         formData.append("last_name", inputs.last_name);
         formData.append("school_organisation", inputs.school_organisation);
         formData.append("work_role", inputs.work_role);
+        if (inputs.work_role === "Teacher" && schoolAdmin) {
+          formData.append("parent_id", schoolAdmin._id);
+        }
         formData.append("portal_region", inputs.portal_region || "");
 
         formData.append("program", JSON.stringify(selectedProgramIds));
@@ -324,8 +333,6 @@ export default function AddMember() {
         // formData.append("street2", inputs.street2);
         // formData.append("postal_addess_info", JSON.stringify(postalData));
 
-        //console form data
-        console.log(...formData, "form Data");
 
         setIsLoading(true);
         const result = await AddMemberApi(formData);
@@ -356,6 +363,16 @@ export default function AddMember() {
     const value = event.target.value;
     setInputs((values) => ({ ...values, [name]: value }));
   };
+  React.useEffect(() => {
+    if (inputs.work_role !== "Teacher" || schoolAdmins.length) return;
+    schoolAdministratorsApi().then((result) => {
+      if (result.code === 200) {
+        setSchoolAdmins(result.list);
+      } else {
+        enqueueSnackbar(result.message, { variant: "error" });
+      }
+    });
+  }, [inputs.work_role]);
   React.useEffect(() => {
     getProgramListing();
   }, []);
@@ -509,6 +526,7 @@ export default function AddMember() {
                     onChange={handleChange}
                   >
                     <MenuItem value="">Select role…</MenuItem>
+                    <MenuItem value="School Administrator">School Administrator</MenuItem>
                     <MenuItem value="Principal / SLT">Principal / SLT</MenuItem>
                     <MenuItem value="Teacher">Teacher</MenuItem>
                     <MenuItem value="SEN / Pastoral">SEN / Pastoral</MenuItem>
@@ -518,6 +536,30 @@ export default function AddMember() {
                   </Select>
                 </FormControl>
               </div>
+              {inputs.work_role === "Teacher" && (
+                <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
+                  <Autocomplete
+                    options={schoolAdmins}
+                    value={schoolAdmin}
+                    isOptionEqualToValue={(option, value) => option._id === value._id}
+                    getOptionLabel={(option) =>
+                      `${option.school_organisation} - ${option.first_name} ${option.last_name || ""} (${option.email})`
+                    }
+                    onChange={(event, value) => {
+                      setSchoolAdmin(value);
+                      if (value && !inputs.school_organisation) {
+                        setInputs((values) => ({
+                          ...values,
+                          school_organisation: value.school_organisation,
+                        }));
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField {...params} label="School Administrator *" />
+                    )}
+                  />
+                </div>
+              )}
               <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
                 <FormControl fullWidth>
                   <InputLabel id="portal-region-label">Portal Region *</InputLabel>
