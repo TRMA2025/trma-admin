@@ -40,6 +40,7 @@ import { menuList } from "src/DAL/Menu/Menu";
 import {
   AddProgrammeApi,
   EditProgrammeDocumentApi,
+  programmeDocumentListingApi,
   downloadProgrammeDocumentPdf,
   removeProgrammeDocumentFileApi,
 } from "src/DAL/Programme/Programme";
@@ -51,6 +52,8 @@ import {
 } from "src/DAL/lessonDocument/LessonDocument";
 import { s3baseUrl } from "src/config/config";
 import KsStagesSelect, { appendKsStages } from "src/components/KsStagesSelect";
+import OrderField from "src/components/OrderField";
+import { confirmOrderSave, loadOrderSiblings } from "src/utils/orderRules";
 
 // import { get_root_value } from "src/utils/domUtils";
 
@@ -96,6 +99,8 @@ export default function EditProgrammeDocument() {
   const [value, setValue] = React.useState("Controlled");
   const [personName, setPersonName] = React.useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  // Order as loaded, for the order rules (9 Oct 2026).
+  const loadedOrder = React.useRef(state?.order ?? "");
   const [thumbnail_file, setThumbnailFile] = React.useState();
   const [thumbnail_fileNew, setThumbnailFileNew] = React.useState();
   const [otherDocument, setOtherDocument] = React.useState();
@@ -257,6 +262,21 @@ export default function EditProgrammeDocument() {
       console.log(inputs, "inputs.....");
       return;
     }
+
+    const siblings = params.slug
+      ? await loadOrderSiblings(
+          () => programmeDocumentListingApi(params.slug),
+          "program_document"
+        )
+      : null;
+    const proceed = confirmOrderSave({
+      from: loadedOrder.current,
+      to: inputs.order,
+      siblings,
+      self: { _id: state?._id, ks_stages: ksStages },
+      onError: (message) => enqueueSnackbar(message, { variant: "error" }),
+    });
+    if (!proceed) return;
 
     let date = moment(recordingDate).format("YYYY-MM-DD");
 
@@ -461,7 +481,7 @@ export default function EditProgrammeDocument() {
                 </FormControl>
               </div>
               <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
-                <TextField
+                <OrderField
                   id="outlined-basic"
                   label="Order"
                   required

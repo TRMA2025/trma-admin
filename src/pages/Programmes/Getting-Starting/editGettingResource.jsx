@@ -42,10 +42,15 @@ import {
   EditLessonDocumentApi,
 } from "src/DAL/lessonDocument/LessonDocument";
 import { s3baseUrl } from "src/config/config";
-import { EditGettingStartingResourceDoApi } from "src/DAL/gettingStarting/GettingStarting";
+import {
+  EditGettingStartingResourceDoApi,
+  documenlsistingGettingSlug,
+} from "src/DAL/gettingStarting/GettingStarting";
 import { set } from "lodash";
 
 import KsStagesSelect, { appendKsStages } from "src/components/KsStagesSelect";
+import OrderField from "src/components/OrderField";
+import { confirmOrderSave, loadOrderSiblings } from "src/utils/orderRules";
 
 const useStyles = makeStyles(() => ({
   loading: {
@@ -89,6 +94,8 @@ export default function EditGettingResourceDoc() {
   const [value, setValue] = React.useState("Controlled");
   const [personName, setPersonName] = React.useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  // Order as loaded, for the order rules (9 Oct 2026).
+  const loadedOrder = React.useRef(state?.order ?? "");
   const [thumbnail_file, setThumbnailFile] = React.useState();
   const [thumbnail_fileNew, setThumbnailFileNew] = React.useState();
 
@@ -224,6 +231,20 @@ export default function EditGettingResourceDoc() {
         variant: "error",
       });
     } else {
+      const siblings = params.slug
+        ? await loadOrderSiblings(
+            () => documenlsistingGettingSlug(params.slug),
+            "getting_started_documents"
+          )
+        : null;
+      const proceed = confirmOrderSave({
+        from: loadedOrder.current,
+        to: inputs.order,
+        siblings,
+        self: { _id: state?._id, ks_stages: ksStages },
+        onError: (message) => enqueueSnackbar(message, { variant: "error" }),
+      });
+      if (!proceed) return;
       const formData = new FormData();
       formData.append("title", inputs.title);
       formData.append("detailed_description", inputs.detailed_description);
@@ -417,7 +438,7 @@ export default function EditGettingResourceDoc() {
                 </FormControl>
               </div>
               <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
-                <TextField
+                <OrderField
                   id="outlined-basic"
                   label="Order"
                   required

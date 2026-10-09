@@ -11,6 +11,8 @@ import { makeStyles } from "@mui/styles";
 import { add_stage, update_stage } from "src/DAL/Stages/Stages";
 import { useSnackbar } from "notistack";
 import { useParams } from "react-router-dom";
+import OrderField from "src/components/OrderField";
+import { confirmOrderSave } from "src/utils/orderRules";
 
 const useStyles = makeStyles(() => ({
   loading: {
@@ -41,6 +43,18 @@ export default function AddorUpdateStage({
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Stages carry no stage tags, so only the change is confirmed (9 Oct 2026).
+    if (
+      formType == "Edit" &&
+      !confirmOrderSave({
+        from: editDoc?.order,
+        to: inputs.order,
+        siblings: null,
+        onError: (message) => enqueueSnackbar(message, { variant: "error" }),
+      })
+    ) {
+      return;
+    }
 
     let postData = {
       name: inputs.name,
@@ -115,19 +129,16 @@ export default function AddorUpdateStage({
         </div>
         {formType == "Edit" && (
           <div className="col-12 mt-3">
-            <TextField
+            <OrderField
               id="outlined-basic"
               label="Order"
               variant="outlined"
-              type="number"
               placeholder="Order"
               required
               fullWidth
-              InputProps={{ inputProps: { min: 0 } }}
               name="order"
               value={inputs.order}
               onChange={handleChange}
-              onWheel={(event) => event.target.blur()}
             />
           </div>
         )}

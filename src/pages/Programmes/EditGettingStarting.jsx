@@ -45,9 +45,16 @@ import TinyEditor from "src/components/ckeditor/Ckeditor";
 import {
   EditGettingStartingApi,
   Getting_starting_api,
+  GettingStartingApi,
 } from "src/DAL/gettingStarting/GettingStarting";
 
 import KsStagesSelect, { appendKsStages } from "src/components/KsStagesSelect";
+import OrderField from "src/components/OrderField";
+import {
+  confirmOrderSave,
+  loadOrderSiblings,
+  programSlugOf,
+} from "src/utils/orderRules";
 
 const useStyles = makeStyles(() => ({
   loading: {
@@ -99,6 +106,8 @@ export default function EditGettingStarting() {
   const [detailDescriptionCk, setDetailDescriptionCk] = React.useState("");
   const [lessonDetailInfo, setLessonsDetailInfo] = useState();
   const [updtaeObject, setUpdateObject] = useState({});
+  // Order as loaded, for the order rules (9 Oct 2026).
+  const loadedOrder = React.useRef(state?.order ?? "");
 
   const params = useParams();
   let newid = params.id;
@@ -198,6 +207,14 @@ export default function EditGettingStarting() {
     let result = await Getting_starting_api(newid);
     if (result.code === 200) {
       setLessonsDetailInfo(result.getting_started);
+      // Prefer the stored order over the (possibly stale) router state.
+      if (result.getting_started) {
+        loadedOrder.current = result.getting_started.order ?? "";
+        setInputs((prevState) => ({
+          ...prevState,
+          ["order"]: result.getting_started.order ?? "",
+        }));
+      }
 
       setIsLoading(false);
     } else {
@@ -224,6 +241,22 @@ export default function EditGettingStarting() {
       enqueueSnackbar("Add a video URL or a PDF", { variant: "error" });
       return;
     }
+
+    const programSlug = programSlugOf(lessonDetailInfo) || programSlugOf(state);
+    const siblings = programSlug
+      ? await loadOrderSiblings(
+          () => GettingStartingApi(programSlug),
+          "getting_started"
+        )
+      : null;
+    const proceed = confirmOrderSave({
+      from: loadedOrder.current,
+      to: inputs.order,
+      siblings,
+      self: { _id: lessonDetailInfo?._id || state?._id, ks_stages: ksStages },
+      onError: (message) => enqueueSnackbar(message, { variant: "error" }),
+    });
+    if (!proceed) return;
 
     const originalDate = new Date(inputs.video_duration);
     const hours = originalDate.getHours().toString().padStart(2, "0");
@@ -392,7 +425,7 @@ export default function EditGettingStarting() {
                 />
               </div>
               <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
-                <TextField
+                <OrderField
                   id="outlined-basic"
                   label="Order"
                   required

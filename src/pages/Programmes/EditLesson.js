@@ -42,10 +42,17 @@ import {
   AddLessonApi,
   EditLessonApi,
   lesson_detail_api,
+  lessonListingApi,
 } from "src/DAL/lessons/lessons";
 import { TimePicker } from "@mui/lab";
 import { s3baseUrl } from "src/config/config";
 import TinyEditor from "src/components/ckeditor/Ckeditor";
+import OrderField from "src/components/OrderField";
+import {
+  confirmOrderSave,
+  loadOrderSiblings,
+  programSlugOf,
+} from "src/utils/orderRules";
 // import { get_root_value } from "src/utils/domUtils";
 
 const useStyles = makeStyles(() => ({
@@ -121,6 +128,8 @@ export default function EditLesson() {
   const [deletefromapi, setDeletefromapi] = React.useState(false);
   const [oldAudioFile, setOldAudio] = React.useState();
   const [detailDescriptionCk, setDetailDescriptionCk] = React.useState("");
+  // Order and programme as loaded, for the order rules (9 Oct 2026).
+  const loadedLesson = React.useRef({ order: "", _id: "", programSlug: "" });
 
   //   const [value, setValue] = React.useState(new Date());
 
@@ -201,6 +210,18 @@ export default function EditLesson() {
     if (urlPatternValidation(inputs.videoUrl) === false) {
       enqueueSnackbar("Enter Valid Video URL", { variant: "error" });
     } else {
+      const { programSlug } = loadedLesson.current;
+      const siblings = programSlug
+        ? await loadOrderSiblings(() => lessonListingApi(programSlug), "lesson")
+        : null;
+      const proceed = confirmOrderSave({
+        from: loadedLesson.current.order,
+        to: inputs.order,
+        siblings,
+        self: { _id: loadedLesson.current._id, ks_stages: inputs.ks_stages },
+        onError: (message) => enqueueSnackbar(message, { variant: "error" }),
+      });
+      if (!proceed) return;
       const originalDate = new Date(inputs.video_duration);
       const hours = originalDate.getHours().toString().padStart(2, "0");
       const minutes = originalDate.getMinutes().toString().padStart(2, "0");
@@ -261,6 +282,11 @@ export default function EditLesson() {
   };
 
   const loadLesson = (lesson) => {
+    loadedLesson.current = {
+      order: lesson.order ?? "",
+      _id: lesson._id,
+      programSlug: programSlugOf(lesson),
+    };
     setOldAudio(lesson.audio_file || undefined);
     setDetailDescriptionCk(lesson.detailed_description || "");
     setInputs((prevState) => ({
@@ -392,7 +418,7 @@ export default function EditLesson() {
                 />
               </div>
               <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
-                <TextField
+                <OrderField
                   required
                   id="outlined-basic"
                   label="Order "
