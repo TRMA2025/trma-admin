@@ -15,6 +15,26 @@ const toStages = (value) => {
   return [];
 };
 
+// Same mapping as the server's utils/ks_stage.js ROI_EQUIVALENT.
+const ROI_EQUIVALENT = {
+  "Junior Infants": "Foundation",
+  "Senior Infants": "Foundation",
+  "Junior Infant / Senior Infant": "Foundation",
+  Infant: "Foundation",
+  Junior: "Foundation",
+  Senior: "Foundation",
+  "1st Class": "KS1",
+  "2nd Class": "KS1",
+  "3rd Class": "KS2",
+  "4th Class": "KS2",
+  "5th Class": "KS2",
+  "1st Year": "Year 8",
+  "2nd Year": "Year 9",
+  "3rd Year": "Year 10",
+};
+const canonical = (s) => ROI_EQUIVALENT[String(s).trim()] || String(s).trim();
+const sameStage = (a, b) => canonical(a) === canonical(b);
+
 // The stage tags two items have in common, or null when they share none.
 const sharedStages = (a, b) => {
   const left = toStages(a);
@@ -22,7 +42,8 @@ const sharedStages = (a, b) => {
   if (left.length === 0 && right.length === 0) return ["all stages (untagged)"];
   if (left.length === 0) return right;
   if (right.length === 0) return left;
-  const common = left.filter((s) => right.includes(s));
+  // ROI names are the same stage as their NI equivalent (9 Oct 2026).
+  const common = left.filter((s) => right.some((r) => sameStage(s, r)));
   return common.length > 0 ? common : null;
 };
 
