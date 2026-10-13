@@ -47,6 +47,7 @@ import {
 import { TimePicker } from "@mui/lab";
 import { s3baseUrl } from "src/config/config";
 import TinyEditor from "src/components/ckeditor/Ckeditor";
+import KsStagesSelect, { appendKsStages } from "src/components/KsStagesSelect";
 import OrderField from "src/components/OrderField";
 import {
   confirmOrderSave,
@@ -239,9 +240,7 @@ export default function EditLesson() {
       formData.append("order", inputs.order);
       formData.append("lesson_duration", formattedTime);
       formData.append("recording_delete_status", deletefromapi);
-      if (inputs.ks_stages && inputs.ks_stages.length > 0) {
-        inputs.ks_stages.forEach((s) => formData.append("ks_stages[]", s));
-      }
+      appendKsStages(formData, toStageList(inputs.ks_stages));
 
       if (audioFile) {
         formData.append("audio_file", audioFile);
@@ -599,21 +598,10 @@ export default function EditLesson() {
 
               
               <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
-                <FormControl fullWidth>
-                  <InputLabel id="ks-stages-label">Key Stages</InputLabel>
-                  <Select
-                    labelId="ks-stages-label"
-                    multiple
-                    value={toStageList(inputs.ks_stages)}
-                    onChange={(e) => setInputs(prev => ({ ...prev, ks_stages: typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value }))}
-                    input={<OutlinedInput label="Key Stages" />}
-                    renderValue={(selected) => selected.join(', ')}
-                  >
-                    {["Foundation","KS1","KS2","Year 8","Year 9","Year 10","Junior Infant / Senior Infant","1st Class","2nd Class","3rd Class","4th Class","5th Class","6th Class","1st Year","2nd Year","3rd Year"].map((stage) => (
-                      <MenuItem key={stage} value={stage}>{stage}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <KsStagesSelect
+                  value={toStageList(inputs.ks_stages)}
+                  onChange={(stages) => setInputs((prev) => ({ ...prev, ks_stages: stages }))}
+                />
               </div>
               <div className="col-12 mt-5">
                 <FormControl fullWidth>

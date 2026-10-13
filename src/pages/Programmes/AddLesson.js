@@ -1,5 +1,6 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
+import KsStagesSelect, { appendKsStages } from "src/components/KsStagesSelect";
 import { useState } from "react";
 import TextField from "@mui/material/TextField";
 import InputLabel from "@mui/material/InputLabel";
@@ -173,7 +174,7 @@ export default function AddLesson() {
       const seconds = originalDate.getSeconds().toString().padStart(2, "0");
       const formattedTime = `${hours}:${minutes}:${seconds}`;
       const formData = new FormData();
-      (inputs.ks_stages || []).forEach((st) => formData.append("ks_stages[]", st));
+      appendKsStages(formData, inputs.ks_stages);
       formData.append("title", inputs.title);
       formData.append("program_slug", state);
       if (file) {
@@ -434,21 +435,10 @@ export default function AddLesson() {
               </div>
 
               <div className="col-lg-12 col-md-12 col-sm-12 mt-4">
-                <FormControl fullWidth>
-                  <InputLabel id="ks-stages-label">Key Stages</InputLabel>
-                  <Select
-                    labelId="ks-stages-label"
-                    multiple
-                    value={inputs.ks_stages || []}
-                    onChange={(e) => setInputs(prev => ({ ...prev, ks_stages: typeof e.target.value === "string" ? e.target.value.split(",") : e.target.value }))}
-                    input={<OutlinedInput label="Key Stages" />}
-                    renderValue={(selected) => selected.join(", ")}
-                  >
-                    {["Foundation","KS1","KS2","Year 8","Year 9","Year 10","Junior Infant / Senior Infant","1st Class","2nd Class","3rd Class","4th Class","5th Class","6th Class","1st Year","2nd Year","3rd Year"].map((stage) => (
-                      <MenuItem key={stage} value={stage}>{stage}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <KsStagesSelect
+                  value={inputs.ks_stages || []}
+                  onChange={(stages) => setInputs((prev) => ({ ...prev, ks_stages: stages }))}
+                />
               </div>
               <div className="col-12 mt-5">
                 <FormControl fullWidth>
