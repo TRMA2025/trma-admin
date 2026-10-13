@@ -4,6 +4,7 @@ import {
   Checkbox,
   Chip,
   ListItemText,
+  ListSubheader,
   FormControl,
   FormHelperText,
   InputLabel,
@@ -16,30 +17,16 @@ import {
    forms (16 Sep 2026). The option list is the one the lesson form already
    used, so every content type is tagged with the same vocabulary. Pills match
    these tags exactly (13 Oct 2026): no ROI -> NI equivalents. */
-export const KS_STAGE_OPTIONS = [
-  // NI (BeeMe)
-  "Foundation",
-  "KS1",
-  "KS2",
-  "KS3",
-  // NI (MindMe)
-  "Year 8",
-  "Year 9",
-  "Year 10",
-  // ROI (BeeMe)
-  "Junior Infants",
-  "Senior Infants",
-  "1st Class",
-  "2nd Class",
-  "3rd Class",
-  "4th Class",
-  "5th Class",
-  "6th Class",
-  // ROI (MindMe)
-  "1st Year",
-  "2nd Year",
-  "3rd Year",
+/* Grouped by region (13 Oct 2026, CLAUDE.md rule 7): NI and ROI stages are
+   never mixed. MindMe stages sit with their region. */
+export const KS_STAGE_GROUPS = [
+  { region: "NI", stages: ["Foundation", "KS1", "KS2", "KS3", "Year 8", "Year 9", "Year 10"] },
+  {
+    region: "ROI",
+    stages: ["Junior Infants", "Senior Infants", "1st Class", "2nd Class", "3rd Class", "4th Class", "5th Class", "6th Class", "1st Year", "2nd Year", "3rd Year"],
+  },
 ];
+export const KS_STAGE_OPTIONS = KS_STAGE_GROUPS.flatMap((g) => g.stages);
 
 /* Add the stages to a multipart submission.
  *
@@ -103,12 +90,16 @@ export default function KsStagesSelect({ value, onChange }) {
           </Box>
         )}
       >
-        {KS_STAGE_OPTIONS.map((stage) => (
-          <MenuItem key={stage} value={stage} dense>
-            <Checkbox size="small" checked={selected.includes(stage)} />
-            <ListItemText primary={stage} />
-          </MenuItem>
-        ))}
+        {/* A flat list of children: MUI Select does not look inside fragments. */}
+        {KS_STAGE_GROUPS.flatMap((group) => [
+          <ListSubheader key={`h-${group.region}`}>{group.region}</ListSubheader>,
+          ...group.stages.map((stage) => (
+            <MenuItem key={stage} value={stage} dense>
+              <Checkbox size="small" checked={selected.includes(stage)} />
+              <ListItemText primary={stage} />
+            </MenuItem>
+          )),
+        ])}
       </Select>
       <FormHelperText>
         {unknown.length > 0
